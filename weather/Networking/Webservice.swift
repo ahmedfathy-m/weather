@@ -28,6 +28,13 @@ class OpenWeatherService {
             )
         ).serializingDecodable(WeatherResponse.self).value
     }
+
+    func fetchWeatherImage(iconId: String) async throws -> Data {
+        try await AF.request(
+            "https://openweathermap.org/img/w/\(iconId).png",
+            method: .get
+        ).serializingData().value
+    }
 }
 
 

@@ -1,16 +1,16 @@
 //
-//  WeatherListViewController.swift
+//  HistoryListViewController.swift
 //  weather
 //
-//  Created by Ahmed Fathy Fixed on 04/04/2024.
+//  Created by Ahmed Fathy Fixed on 06/04/2024.
 //
 
 import UIKit
 import Combine
 
-class WeatherListViewController: UIViewController {
-    // MARK: - View Model
-    var viewModel: WeatherListViewModel!
+class HistoryListViewController: UIViewController {
+    // MARK: - ViewModel
+    var viewModel: HistoryListViewModel!
 
     // MARK: - Coordinator
     var coordinator: Coordinator<WeatherRoute>!
@@ -33,59 +33,49 @@ class WeatherListViewController: UIViewController {
         return label
     }()
 
-    lazy var addButtonBG: UIImageView = {
+    lazy var backButtonBG: UIImageView = {
         let imageView = UIImageView(
-            image: UIImage(resource: .buttonRight)
+            image: UIImage(resource: .buttonLeft)
         )
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
 
-    lazy var addButton: UIButton = {
+    lazy var backButton: UIButton = {
         let button = UIButton(
             primaryAction: UIAction { _ in
-                self.addCityPopup()
+                self.navigationController?.popViewController(animated: true)
             }
         )
-        button.setImage(UIImage(systemName: "plus"), for: .normal)
+        button.setImage(UIImage(systemName: "arrow.left"), for: .normal)
         button.tintColor = .black
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
 
-    lazy var emptyStateLabel: UILabel = {
-        let textLabel = UILabel()
-        textLabel.text = "You haven't added any cities, yet."
-        self.view.addSubview(textLabel)
-        textLabel.translatesAutoresizingMaskIntoConstraints = false
-        textLabel.centerYAnchor.constraint(equalTo: self.view.centerYAnchor).isActive = true
-        textLabel.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
-        return textLabel
-    }()
-
-    // MARK: - Life Cycle
+    // MARK: - Life Cycle/ UI Configuration
     override func viewDidLoad() {
-        self.navigationController?.setNavigationBarHidden(true, animated: false)
-
         configureTableView()
-
-        configureAddButton()
+        configureBackground()
+        self.view.backgroundColor = UIColor(resource: .background)
+        self.navigationController?.setNavigationBarHidden(true, animated: false)
         configureTitleLabel()
-
+        configureBackButton()
         subscribeToUpdate()
-        subscribeToEmptyState()
+        viewModel.fetchEntriesFromDataBase()
     }
 
-    // MARK: - UI Configuration
-    override func viewWillAppear(_ animated: Bool) {
-        viewModel.fetchCitiesFromDataBase()
-        configureBackground()
+    func configureTitleLabel() {
+        view.addSubview(titleLabel)
+        titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 15).isActive = true
+        titleLabel.text = "\(viewModel.city)\nHistorical".uppercased()
     }
 
     func configureTableView() {
         tableView.delegate = self
         tableView.dataSource = self
-        tableView.register(WeatherCityTableViewCell.self, forCellReuseIdentifier: "WeatherCellId")
+        tableView.register(WeatherItemTableViewCell.self, forCellReuseIdentifier: "WeatherItemTableViewCell")
 
         view.addSubview(tableView)
         tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
@@ -93,25 +83,6 @@ class WeatherListViewController: UIViewController {
         tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
         tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 90).isActive = true
     }
-
-    func configureAddButton() {
-        view.addSubview(addButtonBG)
-        addButtonBG.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
-        addButtonBG.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
-
-        view.addSubview(addButton)
-        addButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -25).isActive = true
-        addButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 25).isActive = true
-        view.bringSubviewToFront(addButton)
-    }
-
-    func configureTitleLabel() {
-        view.addSubview(titleLabel)
-        titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
-        titleLabel.centerYAnchor.constraint(equalTo: addButton.centerYAnchor).isActive = true
-        titleLabel.text = "Cities".uppercased()
-    }
-
 
     func configureBackground() {
         view.backgroundColor = UIColor(resource: .background)
@@ -129,8 +100,14 @@ class WeatherListViewController: UIViewController {
         image.bottomAnchor.constraint(equalTo: container.bottomAnchor).isActive = true
     }
 
-    func addCityPopup() {
-        coordinator.navigate(.add, transition: .modal)
+    func configureBackButton() {
+        view.addSubview(backButtonBG)
+        backButtonBG.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+        backButtonBG.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
+
+        view.addSubview(backButton)
+        backButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 25).isActive = true
+        backButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 25).isActive = true
     }
 
     func subscribeToUpdate() {
@@ -138,29 +115,26 @@ class WeatherListViewController: UIViewController {
             self?.tableView.reloadData()
         }.store(in: &store)
     }
-
-    func subscribeToEmptyState() {
-        viewModel.isEmpty.sink { [weak self] newValue in
-            self?.tableView.isHidden = newValue
-            self?.emptyStateLabel.isHidden = !newValue
-        }.store(in: &store)
-    }
 }
 
-extension WeatherListViewController: UITableViewDataSource, UITableViewDelegate {
+// MARK: UITableViewDelegate + UITableViewDataSource
+extension HistoryListViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        viewModel.numberOfCities
+        viewModel.numberOfItems
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "WeatherCellId", for: indexPath) as? WeatherCityTableViewCell else { return UITableViewCell() }
-        cell.weatherLabel.text = viewModel.city(at: indexPath.row)
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "WeatherItemTableViewCell", for: indexPath) as? WeatherItemTableViewCell else { return UITableViewCell() }
+        let item = viewModel.item(at: indexPath.row)
+        cell.weatherLabel.text = "\(item.desc), \(item.temperature)"
+        cell.dateLabel.text = item.date.formatted(date: .numeric, time: .shortened)
         cell.backgroundColor = .clear
         return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        coordinator.navigate(.history(viewModel.city(at: indexPath.row)), transition: .push)
+        let item = viewModel.item(at: indexPath.row)
+        coordinator.navigate(.details(item, item.date), transition: .modal)
         tableView.deselectRow(at: indexPath, animated: true)
     }
 }

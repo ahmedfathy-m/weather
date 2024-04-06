@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import RealmSwift
 
 protocol WeatherListViewModel {
     func fetchCitiesFromDataBase()
@@ -21,13 +22,18 @@ class DefaultWeatherListViewModel: WeatherListViewModel {
     private var cities: [String] { subject.value }
 
     func fetchCitiesFromDataBase() {
-        subject.send(
-            [
-                "London",
-                "Cairo",
-                "Mansoura"
-            ]
-        )
+        DispatchQueue.main.async {
+            let realm = try! Realm()
+            let logs = realm.objects(WeatherViewModel.self)
+            print(logs)
+            var cities: [String] = []
+            for log in logs {
+                cities.append(log.name)
+            }
+            self.subject.send(
+                cities.removingDuplicates()
+            )
+        }
     }
 
 
@@ -50,5 +56,21 @@ class DefaultWeatherListViewModel: WeatherListViewModel {
 
     func city(at index: Int) -> String {
         subject.value[index]
+    }
+}
+
+extension Array where Element == String {
+    func removingDuplicates() -> [String] {
+        var uniqueElements = [String]()
+        var encountered = Set<String>()
+
+        for element in self {
+            if !encountered.contains(element) {
+                uniqueElements.append(element)
+                encountered.insert(element)
+            }
+        }
+
+        return uniqueElements
     }
 }

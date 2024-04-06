@@ -89,7 +89,7 @@ class AddCityViewController: UIViewController {
             DispatchQueue.main.async {
                 SVProgressHUD.dismiss()
                 self.dismiss(animated: true) {
-                    self.coordinator.navigate(.details(weather), transition: .modal)
+                    self.coordinator.navigate(.details(weather, Date()), transition: .modal)
                 }
             }
         }
