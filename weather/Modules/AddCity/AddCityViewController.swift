@@ -6,8 +6,11 @@
 //
 
 import UIKit
+import SVProgressHUD
 
 class AddCityViewController: UIViewController {
+    var viewModel: AddCityViewModel!
+
     let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Enter city, postcode or airoport location"
@@ -33,7 +36,7 @@ class AddCityViewController: UIViewController {
         let field = UISearchTextField(
             frame: CGRect(),
             primaryAction: UIAction { _ in
-                self.dismiss(animated: true)
+                self.fetchCityWeather()
             }
         )
         field.placeholder = "Search"
@@ -75,5 +78,17 @@ class AddCityViewController: UIViewController {
         mainStack.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 15).isActive = true
         mainStack.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -15).isActive = true
         mainStack.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 15).isActive = true
+    }
+
+    func fetchCityWeather() {
+        searchTextField.resignFirstResponder()
+        SVProgressHUD.show()
+        Task(priority: .background) {
+            let weather = try await viewModel.fetchWeather(city: searchTextField.text)
+            DispatchQueue.main.async {
+                SVProgressHUD.dismiss()
+                self.dismiss(animated: true)
+            }
+        }
     }
 }
