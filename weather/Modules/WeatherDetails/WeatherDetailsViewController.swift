@@ -116,12 +116,20 @@ class WeatherDetailsViewController: UIViewController {
         vStack.topAnchor.constraint(equalTo: card.topAnchor, constant: 55).isActive = true
     }
 
-    // MARK: Life Cycle
+    // MARK: - Life Cycle
     override func viewDidLoad() {
         self.view.backgroundColor = UIColor(resource: .background)
 
-        self.createWeatherView()
+        createWeatherView()
+        configureDismissButton()
+        configureTitleLabel()
+        configureBackgroundView()
+        configureHistoryFooter()
+        loadWeatherIcon()
+    }
 
+    // MARK: - UI Configuration
+    fileprivate func configureDismissButton() {
         self.view.addSubview(dismissButtonBG)
         dismissButtonBG.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         dismissButtonBG.topAnchor.constraint(equalTo: view.topAnchor, constant: -10).isActive = true
@@ -129,11 +137,15 @@ class WeatherDetailsViewController: UIViewController {
         self.view.addSubview(dismissButton)
         dismissButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 25).isActive = true
         dismissButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 15).isActive = true
+    }
 
+    fileprivate func configureTitleLabel() {
         self.view.addSubview(titleLabel)
         titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
         titleLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 15).isActive = true
+    }
 
+    fileprivate func configureBackgroundView() {
         let backgroundImage = UIImageView(
             image: UIImage(resource: .background)
         )
@@ -143,12 +155,16 @@ class WeatherDetailsViewController: UIViewController {
         backgroundImage.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         backgroundImage.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
         backgroundImage.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+    }
 
+    fileprivate func configureHistoryFooter() {
         self.view.addSubview(historyLabel)
         historyLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
         historyLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16).isActive = true
         historyLabel.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -16).isActive = true
+    }
 
+    fileprivate func loadWeatherIcon() {
         SVProgressHUD.show()
         Task(priority: .background) {
             let image = UIImage(
