@@ -63,7 +63,7 @@ enum WeatherRoute: Route {
     case list
     case add
     case history(city: String)
-    case details(city: String)
+    case details(WeatherResponse)
 
     func resolveView(coordinator: Coordinator<WeatherRoute>) -> UIViewController {
         switch self {
@@ -74,10 +74,15 @@ enum WeatherRoute: Route {
             return view
         case .history(let city):
             return ViewController()
-        case .details(let city):
-            return ViewController()
+        case .details(let weather):
+            let view = ViewController()
+            view.view.backgroundColor = .green
+            return view
         case .add:
-            return AddCityViewController()
+            let view = AddCityViewController()
+            view.viewModel = DefaultAddCityViewModel()
+            view.coordinator = coordinator
+            return view
         }
     }
 }

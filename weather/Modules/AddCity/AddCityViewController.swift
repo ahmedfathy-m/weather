@@ -10,6 +10,7 @@ import SVProgressHUD
 
 class AddCityViewController: UIViewController {
     var viewModel: AddCityViewModel!
+    var coordinator: Coordinator<WeatherRoute>!
 
     let titleLabel: UILabel = {
         let label = UILabel()
@@ -87,7 +88,9 @@ class AddCityViewController: UIViewController {
             let weather = try await viewModel.fetchWeather(city: searchTextField.text)
             DispatchQueue.main.async {
                 SVProgressHUD.dismiss()
-                self.dismiss(animated: true)
+                self.dismiss(animated: true) {
+                    self.coordinator.navigate(.details(weather), transition: .modal)
+                }
             }
         }
     }
