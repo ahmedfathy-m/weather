@@ -54,7 +54,6 @@ class Coordinator<Router: Route> {
     func assign(to window: UIWindow?) {
         guard let window else { return }
         window.rootViewController = self.navigationController
-        window.overrideUserInterfaceStyle = .dark
         window.makeKeyAndVisible()
     }
 }
